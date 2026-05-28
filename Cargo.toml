@@ -12,6 +12,11 @@ description = "Concatenate BAM files by copying compressed BGZF blocks verbatim 
 name = "rsomics-bam-cat"
 path = "src/main.rs"
 
+
+[lib]
+name = "rsomics_bam_cat"
+path = "src/lib.rs"
+doctest = false
 [dependencies]
 rsomics-common = { version = "0.6" }
 rsomics-bamio = { version = "0.1.5" }
