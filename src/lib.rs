@@ -50,10 +50,8 @@ pub struct CatOpts {
     pub no_pg: bool,
 }
 
-/// Read just the uncompressed BAM header from `path`, returning the parsed
-/// [`Header`] and the raw header bytes (everything before the first alignment
-/// record: `magic l_text text n_ref refs`). The raw bytes let the writer
-/// re-emit the first file's header verbatim when no @RG merge is needed.
+/// Returns the parsed header and raw header bytes (`magic l_text text n_ref refs`).
+/// Raw bytes let the writer re-emit verbatim when no @RG merge is needed.
 fn read_header_bytes(path: &Path) -> Result<(Header, Vec<u8>)> {
     let file = File::open(path)
         .map_err(|e| RsomicsError::InvalidInput(format!("{}: {e}", path.display())))?;
@@ -146,9 +144,7 @@ pub fn cat(inputs: &[PathBuf], output_path: Option<&Path>, opts: &CatOpts) -> Re
     }
 }
 
-/// samtools writes a `@PG ID:samtools PN:samtools` line; we record our own tool
-/// so a downstream reader sees the provenance. The exact text differs from
-/// samtools (different program), so compat runs pass `--no-PG`.
+// Text differs from samtools' @PG line; compat runs pass --no-PG.
 fn pg_line() -> String {
     format!(
         "@PG\tID:rsomics-bam-cat\tPN:rsomics-bam-cat\tVN:{}\n",
@@ -220,9 +216,6 @@ fn write_output_header<W: Write>(
     Ok(())
 }
 
-/// The BAM writer emits a BGZF stream (header block(s) + EOF). Inflate it back
-/// to the raw uncompressed header bytes so it can be re-framed alongside our
-/// own block writer. Header-sized, so the inflate cost is negligible.
 fn strip_bgzf_to_uncompressed(bgzf: &[u8]) -> Result<Vec<u8>> {
     use std::io::Read;
     let mut out = Vec::new();
